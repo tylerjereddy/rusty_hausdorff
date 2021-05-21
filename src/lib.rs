@@ -7,10 +7,14 @@ pub fn directed_hausdorff(ar1: &[f64], ar2: &[f64]) -> f64
 //	let mut cmax = 0.0;
     //let inf = f64::INFINITY;
     let mut d = 0.0;
+    let cmax = 0.0;
 
 	for &item_i in ar1.iter() {
         for &item_j in ar2.iter() {
             d += &item_i + item_j;
+            if d < cmax {
+                break;
+            }
 }
 }
 d
