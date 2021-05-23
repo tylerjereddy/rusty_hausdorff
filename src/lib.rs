@@ -6,7 +6,7 @@ pub fn directed_hausdorff(ar1: &[f64], ar2: &[f64]) -> f64
     
     let inf = f64::INFINITY;
     let mut d = 0.0;
-    let cmax = 0.0;
+    let mut cmax = 0.0;
 
 	for &item_i in ar1.iter() {
         let mut cmin = inf;
@@ -18,8 +18,13 @@ pub fn directed_hausdorff(ar1: &[f64], ar2: &[f64]) -> f64
             if d < cmin {
                 cmin = d;
             }
-}
-}
+        }
+    if cmin >= cmax {
+        if d >= cmax{
+            cmax = cmin;
+        }
+    }
+    }
 d
 }
 
