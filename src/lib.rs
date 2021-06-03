@@ -1,16 +1,20 @@
 use ndarray::Array2;
 
-pub fn directed_hausdorff(ar1: Array2<f64>, ar2: Array2<f64>) -> f64
+pub fn directed_hausdorff(ar1: Array2<f64>, ar2: Array2<f64>) -> (f64, usize, usize)
 {
     
     let inf = f64::INFINITY;
     let mut cmax = 0.0;
     let mut d = 0.0;
     let num_dims = ar1.shape()[1];
+    let mut i_store = 0;
+    let mut j_store = 0;
+    let mut i_ret = 0;
+    let mut j_ret = 0;
     
-	for row_i in ar1.outer_iter() {
+	for (i, row_i) in ar1.outer_iter().enumerate() {
         let mut cmin = inf;
-        for row_j in ar2.outer_iter() {
+        for (j, row_j) in ar2.outer_iter().enumerate() {
             d = 0.0;
             for dim in 0..num_dims {
                 // square of distance -- avoid sqrt
@@ -22,13 +26,17 @@ pub fn directed_hausdorff(ar1: Array2<f64>, ar2: Array2<f64>) -> f64
             }
             if d < cmin {
                 cmin = d;
+                i_store = i;
+                j_store = j;
             }
         }
     if cmin >= cmax && d >= cmax {
         cmax = cmin;
+        i_ret = i_store;
+        j_ret = j_store;
     }
     }
-d.sqrt()
+(d.sqrt(), i_ret, j_ret)
 }
 
 
@@ -45,6 +53,6 @@ mod tests {
                         [4., 5., 6.]]);
         let a2 = arr2(&[[1., 2., 3.],
                         [4., 5., 6.]]);
-        assert_eq!(directed_hausdorff(a1, a2), 0.0);
+        assert_eq!(directed_hausdorff(a1, a2).0, 0.0);
     }
 }
