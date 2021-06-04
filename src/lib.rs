@@ -12,6 +12,10 @@ pub fn directed_hausdorff(ar1: Array2<f64>, ar2: Array2<f64>) -> (f64, usize, us
     let mut i_ret = 0;
     let mut j_ret = 0;
     
+    // TODO: decide if we're going to use random
+    // shuffling in the Rust version to match
+    // the SciPy implementation?
+
 	for (i, row_i) in ar1.outer_iter().enumerate() {
         let mut cmin = inf;
         for (j, row_j) in ar2.outer_iter().enumerate() {
@@ -53,6 +57,9 @@ mod tests {
                         [4., 5., 6.]]);
         let a2 = arr2(&[[1., 2., 3.],
                         [4., 5., 6.]]);
-        assert_eq!(directed_hausdorff(a1, a2).0, 0.0);
+        // NOTE: this is the same result as
+        // directed_hausdorff(arr, arr, seed=1)
+        // but not seed=0, which is ok, for now
+        assert_eq!(directed_hausdorff(a1, a2), (0.0, 1, 1));
     }
 }
