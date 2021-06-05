@@ -1,8 +1,6 @@
 use ndarray::Array2;
 
-pub fn directed_hausdorff(ar1: Array2<f64>, ar2: Array2<f64>) -> (f64, usize, usize)
-{
-    
+pub fn directed_hausdorff(ar1: Array2<f64>, ar2: Array2<f64>) -> (f64, usize, usize) {
     let inf = f64::INFINITY;
     let mut cmax = 0.0;
     let mut d = 0.0;
@@ -11,12 +9,12 @@ pub fn directed_hausdorff(ar1: Array2<f64>, ar2: Array2<f64>) -> (f64, usize, us
     let mut j_store = 0;
     let mut i_ret = 0;
     let mut j_ret = 0;
-    
+
     // TODO: decide if we're going to use random
     // shuffling in the Rust version to match
     // the SciPy implementation?
 
-	for (i, row_i) in ar1.outer_iter().enumerate() {
+    for (i, row_i) in ar1.outer_iter().enumerate() {
         let mut cmin = inf;
         for (j, row_j) in ar2.outer_iter().enumerate() {
             d = 0.0;
@@ -34,16 +32,14 @@ pub fn directed_hausdorff(ar1: Array2<f64>, ar2: Array2<f64>) -> (f64, usize, us
                 j_store = j;
             }
         }
-    if cmin >= cmax && d >= cmax {
-        cmax = cmin;
-        i_ret = i_store;
-        j_ret = j_store;
+        if cmin >= cmax && d >= cmax {
+            cmax = cmin;
+            i_ret = i_store;
+            j_ret = j_store;
+        }
     }
-    }
-(cmax.sqrt(), i_ret, j_ret)
+    (cmax.sqrt(), i_ret, j_ret)
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -53,10 +49,8 @@ mod tests {
     fn identical_arrays() {
         // the directed Hausdorff distance between
         // identical arrays should always be zero
-        let a1 = arr2(&[[1., 2., 3.],
-                        [4., 5., 6.]]);
-        let a2 = arr2(&[[1., 2., 3.],
-                        [4., 5., 6.]]);
+        let a1 = arr2(&[[1., 2., 3.], [4., 5., 6.]]);
+        let a2 = arr2(&[[1., 2., 3.], [4., 5., 6.]]);
         // NOTE: this is the same result as
         // directed_hausdorff(arr, arr, seed=1)
         // but not seed=0, which is ok, for now
@@ -77,8 +71,8 @@ mod scipy_tests {
     fn test_indices_scipy() {
         // test for a result identical to SciPy test:
         // test_hausdorff.py::TestHausdorff::test_indices
-        let path_simple_1 = arr2(&[[-1.,-12.],[0.,0.], [1.,1.], [3.,7.], [1.,2.]]);
-        let path_simple_2 = arr2(&[[0.,0.], [1.,1.], [4.,100.], [10.,9.]]);
+        let path_simple_1 = arr2(&[[-1., -12.], [0., 0.], [1., 1.], [3., 7.], [1., 2.]]);
+        let path_simple_2 = arr2(&[[0., 0.], [1., 1.], [4., 100.], [10., 9.]]);
         let expected_result = (93.00537618869137, 2, 3);
         let actual_result = directed_hausdorff(path_simple_2, path_simple_1);
         assert_eq!(actual_result, expected_result);
