@@ -40,7 +40,7 @@ pub fn directed_hausdorff(ar1: Array2<f64>, ar2: Array2<f64>) -> (f64, usize, us
         j_ret = j_store;
     }
     }
-(d.sqrt(), i_ret, j_ret)
+(cmax.sqrt(), i_ret, j_ret)
 }
 
 
@@ -61,5 +61,26 @@ mod tests {
         // directed_hausdorff(arr, arr, seed=1)
         // but not seed=0, which is ok, for now
         assert_eq!(directed_hausdorff(a1, a2), (0.0, 1, 1));
+    }
+}
+
+#[cfg(test)]
+mod scipy_tests {
+    // test for behavior similar to the SciPy
+    // directed_hausdorff implementation
+    // make a `NOTE` in cases where there is a devation
+    // due to the random shuffling/seed in SciPy
+    use super::*;
+    use ndarray::prelude::*;
+
+    #[test]
+    fn test_indices_scipy() {
+        // test for a result identical to SciPy test:
+        // test_hausdorff.py::TestHausdorff::test_indices
+        let path_simple_1 = arr2(&[[-1.,-12.],[0.,0.], [1.,1.], [3.,7.], [1.,2.]]);
+        let path_simple_2 = arr2(&[[0.,0.], [1.,1.], [4.,100.], [10.,9.]]);
+        let expected_result = (93.00537618869137, 2, 3);
+        let actual_result = directed_hausdorff(path_simple_2, path_simple_1);
+        assert_eq!(actual_result, expected_result);
     }
 }
