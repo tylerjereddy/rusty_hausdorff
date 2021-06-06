@@ -51,7 +51,7 @@ mod tests {
         // identical arrays should always be zero
         let a1 = arr2(&[[1., 2., 3.], [4., 5., 6.]]);
         let a2 = arr2(&[[1., 2., 3.], [4., 5., 6.]]);
-        // NOTE: this is the same result as
+        // NOTE: this is the same result as SciPy
         // directed_hausdorff(arr, arr, seed=1)
         // but not seed=0, which is ok, for now
         assert_eq!(directed_hausdorff(a1, a2), (0.0, 1, 1));
@@ -62,7 +62,7 @@ mod tests {
 mod scipy_tests {
     // test for behavior similar to the SciPy
     // directed_hausdorff implementation
-    // make a `NOTE` in cases where there is a devation
+    // make a `NOTE` in cases where there is a deviation
     // due to the random shuffling/seed in SciPy
     use super::*;
     use ndarray::prelude::*;
