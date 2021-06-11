@@ -1,7 +1,6 @@
 use ndarray::Array2;
 
 pub fn directed_hausdorff(ar1: &Array2<f64>, ar2: &Array2<f64>) -> (f64, usize, usize) {
-    let inf = f64::INFINITY;
     let mut cmax = 0.0;
     let mut d = 0.0;
     let num_dims = ar1.shape()[1];
@@ -15,7 +14,7 @@ pub fn directed_hausdorff(ar1: &Array2<f64>, ar2: &Array2<f64>) -> (f64, usize, 
     // the SciPy implementation?
 
     for (i, row_i) in ar1.outer_iter().enumerate() {
-        let mut cmin = inf;
+        let mut cmin = f64::INFINITY;
         for (j, row_j) in ar2.outer_iter().enumerate() {
             d = 0.0;
             for dim in 0..num_dims {
