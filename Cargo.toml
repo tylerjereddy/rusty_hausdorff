@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 ndarray = "0.15.2"
+ndarray-npy = "0.8"
