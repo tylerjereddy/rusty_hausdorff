@@ -1,6 +1,4 @@
 use ndarray::Array2;
-use ndarray_npy::NpzReader;
-use std::fs::File;
 
 pub fn directed_hausdorff(ar1: &Array2<f64>, ar2: &Array2<f64>) -> (f64, usize, usize) {
     let mut cmax = 0.0;
@@ -41,17 +39,6 @@ pub fn directed_hausdorff(ar1: &Array2<f64>, ar2: &Array2<f64>) -> (f64, usize, 
     }
     (cmax.sqrt(), i_ret, j_ret)
 }
-
-//fn setup_tests() -> (Array2<f64>, Array2<f64>, Array2<f64>, Array2<f64>) {
-    // make the exact arrays used in the SciPy test
-    // suite available for testing here
-    //let mut npz = NpzReader::new(File::open("arrays.npz"));
-    //let path_1: Array2<f64> = npz.by_name("path_1");
-    //let path_2: Array2<f64> = npz.by_name("path_2");
-    //let path_1_4d: Array2<f64> = npz.by_name("path_1_4d");
-    //let path_2_4d: Array2<f64> = npz.by_name("path_2_4d");
-    //(path_1, path_2, path_1_4d, path_2_4d)
-//}
 
 #[cfg(test)]
 mod tests {
@@ -326,7 +313,29 @@ mod scipy_tests {
     // due to the random shuffling/seed in SciPy
     use super::*;
     use ndarray::prelude::*;
+    use ndarray_npy::NpzReader;
+    use std::fs::File;
 
+    fn setup_tests() -> (Array2<f64>, Array2<f64>, Array2<f64>, Array2<f64>) {
+        // make the exact arrays used in the SciPy test
+        // suite available for testing here
+        let mut npz =
+            NpzReader::new(File::open("src/paths.npz").expect("unable to open data file"))
+                .expect("unable to read from file");
+        let path_1: Array2<f64> = npz
+            .by_name("path_1.npy")
+            .expect("unable to retrieve path_1 field");
+        let path_2: Array2<f64> = npz
+            .by_name("path_2.npy")
+            .expect("unable to retrieve path_2 field");
+        let path_1_4d: Array2<f64> = npz
+            .by_name("path_1_4d.npy")
+            .expect("unable to retrieve path_1_4d field");
+        let path_2_4d: Array2<f64> = npz
+            .by_name("path_2_4d.npy")
+            .expect("unable to retrieve path_2_4d field");
+        (path_1, path_2, path_1_4d, path_2_4d)
+    }
 
     #[test]
     fn test_indices_scipy() {
@@ -340,17 +349,16 @@ mod scipy_tests {
     }
 
     #[test]
-    fn test_indices_scipy() {
+    fn test_symmetry_scipy() {
         // test for a result identical to SciPy test:
         // test_hausdorff.py::TestHausdorff::test_symmetry
-        (path_1, path_2, path_1_4d, path_2_4d) = setup_tests();
-        expected_forward = 1.000681524361451;
-        expected_reverse = 2.3000000000000003;
-        actual_forward = directed_hausdorff(path_1, path_2).0;
-        actual_reverse = directed_hausdorff(path_2, path_1).0;
-        assert_neq!(actual_forward, actual_reverse);
+        let (path_1, path_2, _, _) = setup_tests();
+        let expected_forward = 1.000681524361451;
+        let expected_reverse = 2.3000000000000003;
+        let actual_forward = directed_hausdorff(&path_1, &path_2).0;
+        let actual_reverse = directed_hausdorff(&path_2, &path_1).0;
+        assert_ne!(actual_forward, actual_reverse);
         assert_eq!(actual_forward, expected_forward);
         assert_eq!(actual_reverse, expected_reverse);
     }
-
 }
