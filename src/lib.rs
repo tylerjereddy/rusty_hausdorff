@@ -361,4 +361,13 @@ mod scipy_tests {
         assert_eq!(actual_forward, expected_forward);
         assert_eq!(actual_reverse, expected_reverse);
     }
+    #[test]
+    fn test_brute_force_comparison_forward_scipy() {
+        // test for a result identical to SciPy test:
+        // test_hausdorff.py::TestHausdorff::test_brute_force_comparison_forward
+        let (path_1, path_2, _, _) = setup_tests();
+        let expected_forward = 1.000681524361451;
+        let actual_forward = directed_hausdorff(&path_1, &path_2).0;
+        assert_eq!(actual_forward, expected_forward);
+    }
 }
