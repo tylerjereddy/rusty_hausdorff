@@ -402,4 +402,14 @@ mod scipy_tests {
         let actual = directed_hausdorff(&path_1, &path_2).0;
         assert_eq!(actual, expected);
     }
+
+    #[test]
+    fn test_4d_data_reverse_scipy() {
+        // test for a result identical to SciPy test:
+        // test_hausdorff.py::TestHausdorff::test_4d_data_reverse
+        let (_, _, path_1_4d, path_2_4d) = setup_tests();
+        let expected = 22.119900542271886;
+        let actual = directed_hausdorff(&path_2_4d, &path_1_4d).0;
+        assert_eq!(actual, expected);
+    }
 }
