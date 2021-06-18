@@ -380,4 +380,14 @@ mod scipy_tests {
         let actual_reverse = directed_hausdorff(&path_2, &path_1).0;
         assert_eq!(actual_reverse, expected_reverse);
     }
+
+    #[test]
+    fn test_degenerate_case_scipy() {
+        // test for a result identical to SciPy test:
+        // test_hausdorff.py::TestHausdorff::test_degenerate_case
+        let (path_1, _, _, _) = setup_tests();
+        let expected = 0.0;
+        let actual = directed_hausdorff(&path_1, &path_1).0;
+        assert_eq!(actual, expected);
+    }
 }
