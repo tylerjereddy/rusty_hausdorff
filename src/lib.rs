@@ -390,4 +390,16 @@ mod scipy_tests {
         let actual = directed_hausdorff(&path_1, &path_1).0;
         assert_eq!(actual, expected);
     }
+
+    #[test]
+    fn test_2d_data_forward_scipy() {
+        // test for a result identical to SciPy test:
+        // test_hausdorff.py::TestHausdorff::test_2d_data_forward
+        let (path_1, path_2, _, _) = setup_tests();
+        let path_1 = path_1.slice(s![.., ..2]).to_owned();
+        let path_2 = path_2.slice(s![.., ..2]).to_owned();
+        let expected = 1.000681524361451;
+        let actual = directed_hausdorff(&path_1, &path_2).0;
+        assert_eq!(actual, expected);
+    }
 }
