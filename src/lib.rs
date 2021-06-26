@@ -40,6 +40,16 @@ pub fn directed_hausdorff(ar1: &Array2<f64>, ar2: &Array2<f64>) -> (f64, usize, 
     (cmax.sqrt(), i_ret, j_ret)
 }
 
+pub fn _tuple_sorter() {
+    // this function should accept a data structure
+    // that contains the (cmax, i, j) tuples from parallel
+    // threads and returns the true directed hausdorff
+    // tuple, which would be the one with largest cmax
+    // so, some kind of sorting work
+    // NOTE: have not decided how the tuples will
+    // be stored as a group just yet
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
