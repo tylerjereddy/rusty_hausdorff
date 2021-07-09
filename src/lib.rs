@@ -441,8 +441,10 @@ mod scipy_tests {
         let (path_1, _, _, _) = setup_tests();
         let expected = 0.0;
         let path_1 = Arc::new(path_1);
-        let actual = directed_hausdorff(path_1.clone(), path_1.clone(), 0).0;
-        assert_eq!(actual, expected);
+        for workers in 0..4 {
+            let actual = directed_hausdorff(path_1.clone(), path_1.clone(), workers).0;
+            assert_eq!(actual, expected);
+        }
     }
 
     #[test]
@@ -450,11 +452,13 @@ mod scipy_tests {
         // test for a result identical to SciPy test:
         // test_hausdorff.py::TestHausdorff::test_2d_data_forward
         let (path_1, path_2, _, _) = setup_tests();
-        let path_1 = path_1.slice(s![.., ..2]).to_owned();
-        let path_2 = path_2.slice(s![.., ..2]).to_owned();
+        let path_1 = Arc::new(path_1.slice(s![.., ..2]).to_owned());
+        let path_2 = Arc::new(path_2.slice(s![.., ..2]).to_owned());
         let expected = 1.000681524361451;
-        let actual = directed_hausdorff(Arc::new(path_1), Arc::new(path_2), 0).0;
-        assert_eq!(actual, expected);
+        for workers in 0..4 {
+            let actual = directed_hausdorff(path_1.clone(), path_2.clone(), workers).0;
+            assert_eq!(actual, expected);
+        }
     }
 
     #[test]
