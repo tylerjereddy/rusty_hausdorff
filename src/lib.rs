@@ -12,7 +12,7 @@ pub fn directed_hausdorff(
     // shuffling in the Rust version to match
     // the SciPy implementation?
 
-    if workers == 0 {
+    if workers <= 1 {
         // single thread/serial approach
         directed_hausdorff_core(&ar1, &ar2)
     } else {
