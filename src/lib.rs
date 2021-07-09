@@ -430,8 +430,12 @@ mod scipy_tests {
         // test_hausdorff.py::TestHausdorff::test_brute_force_comparison_reverse
         let (path_1, path_2, _, _) = setup_tests();
         let expected_reverse = 2.3000000000000003;
-        let actual_reverse = directed_hausdorff(Arc::new(path_2), Arc::new(path_1), 0).0;
-        assert_eq!(actual_reverse, expected_reverse);
+        let path_1 = Arc::new(path_1);
+        let path_2 = Arc::new(path_2);
+        for workers in 0..4 {
+            let actual_reverse = directed_hausdorff(path_2.clone(), path_1.clone(), workers).0;
+            assert_eq!(actual_reverse, expected_reverse);
+        }
     }
 
     #[test]
