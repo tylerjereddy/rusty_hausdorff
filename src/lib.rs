@@ -19,12 +19,12 @@ pub fn directed_hausdorff(
         let (tx, rx) = mpsc::channel();
         for _ in 0..workers {
             // TODO: parallel implementation where
-            // each spawned thread gets a slice
+            // each spawned thread works on a subset
             // of ar1 instead of all threads doing
             // the same work...
             let sub_tx = tx.clone();
             let arr1 = ar1.clone();
-            let arr2 = ar1.clone();
+            let arr2 = ar2.clone();
             thread::spawn(move || {
                 let thread_result = directed_hausdorff_core(&arr1, &arr2);
                 sub_tx.send(thread_result).unwrap();
@@ -463,7 +463,11 @@ mod scipy_tests {
         // test_hausdorff.py::TestHausdorff::test_4d_data_reverse
         let (_, _, path_1_4d, path_2_4d) = setup_tests();
         let expected = 22.119900542271886;
-        let actual = directed_hausdorff(Arc::new(path_2_4d), Arc::new(path_1_4d), 0).0;
-        assert_eq!(actual, expected);
+        let path_1_4d = Arc::new(path_1_4d);
+        let path_2_4d = Arc::new(path_2_4d);
+        for workers in 0..4 {
+            let actual = directed_hausdorff(path_2_4d.clone(), path_1_4d.clone(), workers).0;
+            assert_eq!(actual, expected);
+        }
     }
 }
