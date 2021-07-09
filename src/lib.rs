@@ -1,8 +1,11 @@
 use ndarray::Array2;
+use std::sync::mpsc;
+use std::sync::Arc;
+use std::thread;
 
 pub fn directed_hausdorff(
-    ar1: &Array2<f64>,
-    ar2: &Array2<f64>,
+    ar1: Arc<Array2<f64>>,
+    ar2: Arc<Array2<f64>>,
     workers: u64,
 ) -> (f64, usize, usize) {
     // TODO: decide if we're going to use random
@@ -11,12 +14,23 @@ pub fn directed_hausdorff(
 
     if workers == 0 {
         // single thread/serial approach
-        directed_hausdorff_core(ar1, ar2)
+        directed_hausdorff_core(&ar1, &ar2)
     } else {
-        // TODO: parallel implementation where
-        // each spawned thread gets a slice
-        // of ar1
-        (1.0, 1, 1)
+        let (tx, rx) = mpsc::channel();
+        for _ in 0..workers {
+            // TODO: parallel implementation where
+            // each spawned thread gets a slice
+            // of ar1 instead of all threads doing
+            // the same work...
+            let sub_tx = tx.clone();
+            let arr1 = ar1.clone();
+            let arr2 = ar1.clone();
+            thread::spawn(move || {
+                let thread_result = directed_hausdorff_core(&arr1, &arr2);
+                sub_tx.send(thread_result).unwrap();
+            });
+        }
+        rx.recv().unwrap()
     }
 }
 
@@ -79,7 +93,10 @@ mod tests {
         // NOTE: this is the same result as SciPy
         // directed_hausdorff(arr, arr, seed=1)
         // but not seed=0, which is ok, for now
-        assert_eq!(directed_hausdorff(&a1, &a2, 0), (0.0, 1, 1));
+        assert_eq!(
+            directed_hausdorff(Arc::new(a1), Arc::new(a2), 0),
+            (0.0, 1, 1)
+        );
     }
 
     #[test]
@@ -87,13 +104,13 @@ mod tests {
         // this isn't part of the SciPy test suite, but
         // spot check this matching result for a random
         // 2D case
-        let a1 = arr2(&[[0., 0.7], [1., 6.5], [0., 17.], [-1., 9.]]);
-        let a2 = arr2(&[[77., 7.2], [15., 5.5], [-9., 16.]]);
+        let a1 = Arc::new(arr2(&[[0., 0.7], [1., 6.5], [0., 17.], [-1., 9.]]));
+        let a2 = Arc::new(arr2(&[[77., 7.2], [15., 5.5], [-9., 16.]]));
         let expected = (15.749285698088025, 0, 1);
-        let actual = directed_hausdorff(&a1, &a2, 0);
+        let actual = directed_hausdorff(a1.clone(), a2.clone(), 0);
         assert_eq!(actual, expected);
         let expected_reverse = (76.00322361584408, 0, 1);
-        let actual_reverse = directed_hausdorff(&a2, &a1, 0);
+        let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), 0);
         assert_eq!(actual_reverse, expected_reverse);
     }
     #[test]
@@ -127,8 +144,10 @@ mod tests {
         ]);
         let expected = (26.308858482452525, 4, 7);
         let expected_reverse = (28.733927306239696, 0, 5);
-        let actual = directed_hausdorff(&a1, &a2, 0);
-        let actual_reverse = directed_hausdorff(&a2, &a1, 0);
+        let a1 = Arc::new(a1);
+        let a2 = Arc::new(a2);
+        let actual = directed_hausdorff(a1.clone(), a2.clone(), 0);
+        let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), 0);
         assert_eq!(actual, expected);
         assert_eq!(actual_reverse, expected_reverse);
     }
@@ -162,8 +181,10 @@ mod tests {
         ]);
         let expected = (2.728081280912664, 5, 2);
         let expected_reverse = (3.081024070737598, 0, 1);
-        let actual = directed_hausdorff(&a1, &a2, 0);
-        let actual_reverse = directed_hausdorff(&a2, &a1, 0);
+        let a1 = Arc::new(a1);
+        let a2 = Arc::new(a2);
+        let actual = directed_hausdorff(a1.clone(), a2.clone(), 0);
+        let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), 0);
         assert_eq!(actual, expected);
         assert_eq!(actual_reverse, expected_reverse);
     }
@@ -228,8 +249,10 @@ mod tests {
         ]);
         let expected = (23.652897613073076, 3, 5);
         let expected_reverse = (10.461250978884332, 4, 26);
-        let actual = directed_hausdorff(&a1, &a2, 0);
-        let actual_reverse = directed_hausdorff(&a2, &a1, 0);
+        let a1 = Arc::new(a1);
+        let a2 = Arc::new(a2);
+        let actual = directed_hausdorff(a1.clone(), a2.clone(), 0);
+        let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), 0);
         assert_eq!(actual, expected);
         assert_eq!(actual_reverse, expected_reverse);
     }
@@ -324,8 +347,10 @@ mod tests {
         ]);
         let expected = (1.8169357979151486, 3, 2);
         let expected_reverse = (1.7669708788364127, 0, 13);
-        let actual = directed_hausdorff(&a1, &a2, 0);
-        let actual_reverse = directed_hausdorff(&a2, &a1, 0);
+        let a1 = Arc::new(a1);
+        let a2 = Arc::new(a2);
+        let actual = directed_hausdorff(a1.clone(), a2.clone(), 0);
+        let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), 0);
         assert_eq!(actual, expected);
         assert_eq!(actual_reverse, expected_reverse);
     }
@@ -370,7 +395,7 @@ mod scipy_tests {
         let path_simple_1 = arr2(&[[-1., -12.], [0., 0.], [1., 1.], [3., 7.], [1., 2.]]);
         let path_simple_2 = arr2(&[[0., 0.], [1., 1.], [4., 100.], [10., 9.]]);
         let expected_result = (93.00537618869137, 2, 3);
-        let actual_result = directed_hausdorff(&path_simple_2, &path_simple_1, 0);
+        let actual_result = directed_hausdorff(Arc::new(path_simple_2), Arc::new(path_simple_1), 0);
         assert_eq!(actual_result, expected_result);
     }
 
@@ -381,8 +406,10 @@ mod scipy_tests {
         let (path_1, path_2, _, _) = setup_tests();
         let expected_forward = 1.000681524361451;
         let expected_reverse = 2.3000000000000003;
-        let actual_forward = directed_hausdorff(&path_1, &path_2, 0).0;
-        let actual_reverse = directed_hausdorff(&path_2, &path_1, 0).0;
+        let path_1 = Arc::new(path_1);
+        let path_2 = Arc::new(path_2);
+        let actual_forward = directed_hausdorff(path_1.clone(), path_2.clone(), 0).0;
+        let actual_reverse = directed_hausdorff(path_2.clone(), path_1.clone(), 0).0;
         assert_ne!(actual_forward, actual_reverse);
         assert_eq!(actual_forward, expected_forward);
         assert_eq!(actual_reverse, expected_reverse);
@@ -393,7 +420,7 @@ mod scipy_tests {
         // test_hausdorff.py::TestHausdorff::test_brute_force_comparison_forward
         let (path_1, path_2, _, _) = setup_tests();
         let expected_forward = 1.000681524361451;
-        let actual_forward = directed_hausdorff(&path_1, &path_2, 0).0;
+        let actual_forward = directed_hausdorff(Arc::new(path_1), Arc::new(path_2), 0).0;
         assert_eq!(actual_forward, expected_forward);
     }
 
@@ -403,7 +430,7 @@ mod scipy_tests {
         // test_hausdorff.py::TestHausdorff::test_brute_force_comparison_reverse
         let (path_1, path_2, _, _) = setup_tests();
         let expected_reverse = 2.3000000000000003;
-        let actual_reverse = directed_hausdorff(&path_2, &path_1, 0).0;
+        let actual_reverse = directed_hausdorff(Arc::new(path_2), Arc::new(path_1), 0).0;
         assert_eq!(actual_reverse, expected_reverse);
     }
 
@@ -413,7 +440,8 @@ mod scipy_tests {
         // test_hausdorff.py::TestHausdorff::test_degenerate_case
         let (path_1, _, _, _) = setup_tests();
         let expected = 0.0;
-        let actual = directed_hausdorff(&path_1, &path_1, 0).0;
+        let path_1 = Arc::new(path_1);
+        let actual = directed_hausdorff(path_1.clone(), path_1.clone(), 0).0;
         assert_eq!(actual, expected);
     }
 
@@ -425,7 +453,7 @@ mod scipy_tests {
         let path_1 = path_1.slice(s![.., ..2]).to_owned();
         let path_2 = path_2.slice(s![.., ..2]).to_owned();
         let expected = 1.000681524361451;
-        let actual = directed_hausdorff(&path_1, &path_2, 0).0;
+        let actual = directed_hausdorff(Arc::new(path_1), Arc::new(path_2), 0).0;
         assert_eq!(actual, expected);
     }
 
@@ -435,7 +463,7 @@ mod scipy_tests {
         // test_hausdorff.py::TestHausdorff::test_4d_data_reverse
         let (_, _, path_1_4d, path_2_4d) = setup_tests();
         let expected = 22.119900542271886;
-        let actual = directed_hausdorff(&path_2_4d, &path_1_4d, 0).0;
+        let actual = directed_hausdorff(Arc::new(path_2_4d), Arc::new(path_1_4d), 0).0;
         assert_eq!(actual, expected);
     }
 }
