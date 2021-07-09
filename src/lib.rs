@@ -420,8 +420,12 @@ mod scipy_tests {
         // test_hausdorff.py::TestHausdorff::test_brute_force_comparison_forward
         let (path_1, path_2, _, _) = setup_tests();
         let expected_forward = 1.000681524361451;
-        let actual_forward = directed_hausdorff(Arc::new(path_1), Arc::new(path_2), 0).0;
-        assert_eq!(actual_forward, expected_forward);
+        let path_1 = Arc::new(path_1);
+        let path_2 = Arc::new(path_2);
+        for workers in 0..4 {
+            let actual_forward = directed_hausdorff(path_1.clone(), path_2.clone(), workers).0;
+            assert_eq!(actual_forward, expected_forward);
+        }
     }
 
     #[test]
