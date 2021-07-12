@@ -392,11 +392,14 @@ mod scipy_tests {
     fn test_indices_scipy() {
         // test for a result identical to SciPy test:
         // test_hausdorff.py::TestHausdorff::test_indices
-        let path_simple_1 = arr2(&[[-1., -12.], [0., 0.], [1., 1.], [3., 7.], [1., 2.]]);
-        let path_simple_2 = arr2(&[[0., 0.], [1., 1.], [4., 100.], [10., 9.]]);
+        let path_simple_1 = Arc::new(arr2(&[[-1., -12.], [0., 0.], [1., 1.], [3., 7.], [1., 2.]]));
+        let path_simple_2 = Arc::new(arr2(&[[0., 0.], [1., 1.], [4., 100.], [10., 9.]]));
         let expected_result = (93.00537618869137, 2, 3);
-        let actual_result = directed_hausdorff(Arc::new(path_simple_2), Arc::new(path_simple_1), 0);
-        assert_eq!(actual_result, expected_result);
+        for workers in 0..4 {
+            let actual_result =
+                directed_hausdorff(path_simple_2.clone(), path_simple_1.clone(), workers);
+            assert_eq!(actual_result, expected_result);
+        }
     }
 
     #[test]
