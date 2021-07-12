@@ -408,11 +408,13 @@ mod scipy_tests {
         let expected_reverse = 2.3000000000000003;
         let path_1 = Arc::new(path_1);
         let path_2 = Arc::new(path_2);
-        let actual_forward = directed_hausdorff(path_1.clone(), path_2.clone(), 0).0;
-        let actual_reverse = directed_hausdorff(path_2.clone(), path_1.clone(), 0).0;
-        assert_ne!(actual_forward, actual_reverse);
-        assert_eq!(actual_forward, expected_forward);
-        assert_eq!(actual_reverse, expected_reverse);
+        for workers in 0..4 {
+            let actual_forward = directed_hausdorff(path_1.clone(), path_2.clone(), workers).0;
+            let actual_reverse = directed_hausdorff(path_2.clone(), path_1.clone(), workers).0;
+            assert_ne!(actual_forward, actual_reverse);
+            assert_eq!(actual_forward, expected_forward);
+            assert_eq!(actual_reverse, expected_reverse);
+        }
     }
     #[test]
     fn test_brute_force_comparison_forward_scipy() {
