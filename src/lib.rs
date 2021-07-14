@@ -183,10 +183,12 @@ mod tests {
         let expected_reverse = (3.081024070737598, 0, 1);
         let a1 = Arc::new(a1);
         let a2 = Arc::new(a2);
-        let actual = directed_hausdorff(a1.clone(), a2.clone(), 0);
-        let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), 0);
-        assert_eq!(actual, expected);
-        assert_eq!(actual_reverse, expected_reverse);
+        for workers in 0..4 {
+            let actual = directed_hausdorff(a1.clone(), a2.clone(), workers);
+            let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), workers);
+            assert_eq!(actual, expected);
+            assert_eq!(actual_reverse, expected_reverse);
+        }
     }
 
     #[test]
