@@ -107,11 +107,13 @@ mod tests {
         let a1 = Arc::new(arr2(&[[0., 0.7], [1., 6.5], [0., 17.], [-1., 9.]]));
         let a2 = Arc::new(arr2(&[[77., 7.2], [15., 5.5], [-9., 16.]]));
         let expected = (15.749285698088025, 0, 1);
-        let actual = directed_hausdorff(a1.clone(), a2.clone(), 0);
-        assert_eq!(actual, expected);
         let expected_reverse = (76.00322361584408, 0, 1);
-        let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), 0);
-        assert_eq!(actual_reverse, expected_reverse);
+        for workers in 0..4 {
+            let actual = directed_hausdorff(a1.clone(), a2.clone(), workers);
+            assert_eq!(actual, expected);
+            let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), workers);
+            assert_eq!(actual_reverse, expected_reverse);
+        }
     }
     #[test]
     fn compare_scipy_3d() {
