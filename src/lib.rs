@@ -14,7 +14,7 @@ pub fn directed_hausdorff(
 
     if workers <= 1 {
         // single thread/serial approach
-        directed_hausdorff_core(&ar1, &ar2)
+        directed_hausdorff_core(&ar1, &ar2, 0, ar1.nrows())
     } else {
         let (tx, rx) = mpsc::channel();
         for _ in 0..workers {
@@ -26,7 +26,7 @@ pub fn directed_hausdorff(
             let arr1 = ar1.clone();
             let arr2 = ar2.clone();
             thread::spawn(move || {
-                let thread_result = directed_hausdorff_core(&arr1, &arr2);
+                let thread_result = directed_hausdorff_core(&arr1, &arr2, 0, arr1.nrows());
                 sub_tx.send(thread_result).unwrap();
             });
         }
@@ -34,7 +34,12 @@ pub fn directed_hausdorff(
     }
 }
 
-fn directed_hausdorff_core(ar1: &Array2<f64>, ar2: &Array2<f64>) -> (f64, usize, usize) {
+fn directed_hausdorff_core(
+    ar1: &Array2<f64>,
+    ar2: &Array2<f64>,
+    start_row_index: usize,
+    end_row_index: usize,
+) -> (f64, usize, usize) {
     let mut cmax = 0.0;
     let mut d = 0.0;
     let num_dims = ar1.shape()[1];
@@ -43,14 +48,14 @@ fn directed_hausdorff_core(ar1: &Array2<f64>, ar2: &Array2<f64>) -> (f64, usize,
     let mut i_ret = 0;
     let mut j_ret = 0;
 
-    for (i, row_i) in ar1.outer_iter().enumerate() {
+    for i in start_row_index..end_row_index {
         let mut cmin = f64::INFINITY;
         for (j, row_j) in ar2.outer_iter().enumerate() {
             d = 0.0;
             for dim in 0..num_dims {
                 // square of distance -- avoid sqrt
                 // until very end for performance
-                d += (row_i[dim] - row_j[dim]).powi(2);
+                d += (ar1[[i, dim]] - row_j[dim]).powi(2);
             }
             if d < cmax {
                 break;
