@@ -30,7 +30,17 @@ pub fn directed_hausdorff(
                 sub_tx.send(thread_result).unwrap();
             });
         }
-        rx.recv().unwrap()
+        // TODO: eventually, the individual threads
+        // will provide thread_val values that are
+        // not the same, once the work is divided up;
+        // when that happens, we'll need a way to
+        // sort the per-thread Hausdorff values to find
+        // the "global" Hausdorff value
+        let mut results = vec![];
+        if let Ok(thread_val) = rx.recv() {
+            results.push(thread_val);
+        }
+        results[0]
     }
 }
 
