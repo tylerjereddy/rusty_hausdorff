@@ -6,40 +6,61 @@ use std::thread;
 pub fn directed_hausdorff(
     ar1: Arc<Array2<f64>>,
     ar2: Arc<Array2<f64>>,
-    workers: u64,
+    workers: usize,
 ) -> (f64, usize, usize) {
     // TODO: decide if we're going to use random
     // shuffling in the Rust version to match
     // the SciPy implementation?
+    let chunk_size;
+    let mut start;
+    let mut stop;
 
     if workers <= 1 {
         // single thread/serial approach
         directed_hausdorff_core(&ar1, &ar2, 0, ar1.nrows())
     } else {
         let (tx, rx) = mpsc::channel();
+        if ar1.nrows() % workers == 0 {
+            chunk_size = ar1.nrows() / workers;
+        } else {
+            // TODO: parallel workflow handled
+            // for more complex scenarios AND
+            // based on whether ar1 has more rows
+            // than ar2 (otherwise, may want to work
+            // on chunks of ar2 instead)
+            chunk_size = ar1.nrows();
+        }
+        start = 0;
+        stop = chunk_size;
         for _ in 0..workers {
-            // TODO: parallel implementation where
-            // each spawned thread works on a subset
-            // of ar1 instead of all threads doing
-            // the same work...
             let sub_tx = tx.clone();
             let arr1 = ar1.clone();
             let arr2 = ar2.clone();
             thread::spawn(move || {
-                let thread_result = directed_hausdorff_core(&arr1, &arr2, 0, arr1.nrows());
+                let thread_result = directed_hausdorff_core(&arr1, &arr2, start, stop);
                 sub_tx.send(thread_result).unwrap();
             });
+            if ar1.nrows() % workers == 0 {
+                // TODO: don't restrict parallelization
+                // to this scenario
+                start += chunk_size;
+                stop += chunk_size;
+            }
         }
-        // TODO: eventually, the individual threads
-        // will provide thread_val values that are
-        // not the same, once the work is divided up;
-        // when that happens, we'll need a way to
-        // sort the per-thread Hausdorff values to find
-        // the "global" Hausdorff value
+        // TODO: refactor to use scoping instead of using
+        // an explicit drop of the sender/transmitter
+        // to close the channel (and prevent a hang in the
+        // receiver loop below) -- the manual drop()
+        // is not as idiomatic as scoping
+        drop(tx);
         let mut results = vec![];
-        if let Ok(thread_val) = rx.recv() {
+        for thread_val in rx.iter() {
             results.push(thread_val);
         }
+        // reverse sort the vector of hausdorff tuples
+        // and return the largest (true Hausdorff)
+        // distance data from the threads
+        results.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
         results[0]
     }
 }
