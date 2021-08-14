@@ -28,7 +28,17 @@ pub fn directed_hausdorff(
             // based on whether ar1 has more rows
             // than ar2 (otherwise, may want to work
             // on chunks of ar2 instead)
-            chunk_size = ar1.nrows();
+
+            if workers >= ar1.nrows() {
+                // if there are equivalent or more workers than rows
+                // give each worker a row until you run
+                // out of rows
+                chunk_size = 1;
+            } else {
+                // TODO: handle other scenarios where
+                // rows % workers != 0
+                chunk_size = ar1.nrows();
+            }
         }
         start = 0;
         stop = chunk_size;
@@ -45,6 +55,9 @@ pub fn directed_hausdorff(
                 // to this scenario
                 start += chunk_size;
                 stop += chunk_size;
+            }
+            if stop > ar1.nrows() {
+                break;
             }
         }
         // TODO: refactor to use scoping instead of using
