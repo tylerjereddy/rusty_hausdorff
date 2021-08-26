@@ -19,7 +19,6 @@ pub fn directed_hausdorff(
         // single thread/serial approach
         directed_hausdorff_core(&ar1, &ar2, 0, ar1.nrows())
     } else {
-        let (tx, rx) = mpsc::channel();
         if ar1.nrows() % workers == 0 {
             chunk_size = ar1.nrows() / workers;
         } else {
@@ -40,32 +39,30 @@ pub fn directed_hausdorff(
                 chunk_size = ar1.nrows();
             }
         }
-        start = 0;
-        stop = chunk_size;
-        for _ in 0..workers {
-            let sub_tx = tx.clone();
-            let arr1 = ar1.clone();
-            let arr2 = ar2.clone();
-            thread::spawn(move || {
-                let thread_result = directed_hausdorff_core(&arr1, &arr2, start, stop);
-                sub_tx.send(thread_result).unwrap();
-            });
-            if ar1.nrows() % workers == 0 {
-                // TODO: don't restrict parallelization
-                // to this scenario
-                start += chunk_size;
-                stop += chunk_size;
+        let rx = {
+            let (tx, rx) = mpsc::channel();
+            start = 0;
+            stop = chunk_size;
+            for _ in 0..workers {
+                let sub_tx = tx.clone();
+                let arr1 = ar1.clone();
+                let arr2 = ar2.clone();
+                thread::spawn(move || {
+                    let thread_result = directed_hausdorff_core(&arr1, &arr2, start, stop);
+                    sub_tx.send(thread_result).unwrap();
+                });
+                if ar1.nrows() % workers == 0 {
+                    // TODO: don't restrict parallelization
+                    // to this scenario
+                    start += chunk_size;
+                    stop += chunk_size;
+                }
+                if stop > ar1.nrows() {
+                    break;
+                }
             }
-            if stop > ar1.nrows() {
-                break;
-            }
-        }
-        // TODO: refactor to use scoping instead of using
-        // an explicit drop of the sender/transmitter
-        // to close the channel (and prevent a hang in the
-        // receiver loop below) -- the manual drop()
-        // is not as idiomatic as scoping
-        drop(tx);
+            rx
+        };
         let mut results = vec![];
         for thread_val in rx.iter() {
             results.push(thread_val);
