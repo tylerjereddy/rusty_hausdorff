@@ -34,9 +34,9 @@ pub fn directed_hausdorff(
                 // out of rows
                 chunk_size = 1;
             } else {
-                // TODO: handle other scenarios where
-                // rows % workers != 0
-                chunk_size = ar1.nrows();
+                // NOTE: there is probably a more efficient
+                // way to distribute work in this case
+                chunk_size = (ar1.nrows() as f64 / workers as f64).ceil() as usize;
             }
         }
         let rx = {
@@ -51,14 +51,10 @@ pub fn directed_hausdorff(
                     let thread_result = directed_hausdorff_core(&arr1, &arr2, start, stop);
                     sub_tx.send(thread_result).unwrap();
                 });
-                if ar1.nrows() % workers == 0 {
-                    // TODO: don't restrict parallelization
-                    // to this scenario
-                    start += chunk_size;
-                    stop += chunk_size;
-                }
+                start += chunk_size;
+                stop += chunk_size;
                 if stop > ar1.nrows() {
-                    break;
+                    stop = ar1.nrows();
                 }
             }
             rx
@@ -144,7 +140,7 @@ mod tests {
         let a2 = Arc::new(arr2(&[[77., 7.2], [15., 5.5], [-9., 16.]]));
         let expected = (15.749285698088025, 0, 1);
         let expected_reverse = (76.00322361584408, 0, 1);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual = directed_hausdorff(a1.clone(), a2.clone(), workers);
             assert_eq!(actual, expected);
             let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), workers);
@@ -184,7 +180,7 @@ mod tests {
         let expected_reverse = (28.733927306239696, 0, 5);
         let a1 = Arc::new(a1);
         let a2 = Arc::new(a2);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual = directed_hausdorff(a1.clone(), a2.clone(), workers);
             let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), workers);
             assert_eq!(actual, expected);
@@ -223,7 +219,7 @@ mod tests {
         let expected_reverse = (3.081024070737598, 0, 1);
         let a1 = Arc::new(a1);
         let a2 = Arc::new(a2);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual = directed_hausdorff(a1.clone(), a2.clone(), workers);
             let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), workers);
             assert_eq!(actual, expected);
@@ -293,7 +289,7 @@ mod tests {
         let expected_reverse = (10.461250978884332, 4, 26);
         let a1 = Arc::new(a1);
         let a2 = Arc::new(a2);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual = directed_hausdorff(a1.clone(), a2.clone(), workers);
             let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), workers);
             assert_eq!(actual, expected);
@@ -393,7 +389,7 @@ mod tests {
         let expected_reverse = (1.7669708788364127, 0, 13);
         let a1 = Arc::new(a1);
         let a2 = Arc::new(a2);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual = directed_hausdorff(a1.clone(), a2.clone(), workers);
             let actual_reverse = directed_hausdorff(a2.clone(), a1.clone(), workers);
             assert_eq!(actual, expected);
@@ -441,7 +437,7 @@ mod scipy_tests {
         let path_simple_1 = Arc::new(arr2(&[[-1., -12.], [0., 0.], [1., 1.], [3., 7.], [1., 2.]]));
         let path_simple_2 = Arc::new(arr2(&[[0., 0.], [1., 1.], [4., 100.], [10., 9.]]));
         let expected_result = (93.00537618869137, 2, 3);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual_result =
                 directed_hausdorff(path_simple_2.clone(), path_simple_1.clone(), workers);
             assert_eq!(actual_result, expected_result);
@@ -457,7 +453,7 @@ mod scipy_tests {
         let expected_reverse = 2.3000000000000003;
         let path_1 = Arc::new(path_1);
         let path_2 = Arc::new(path_2);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual_forward = directed_hausdorff(path_1.clone(), path_2.clone(), workers).0;
             let actual_reverse = directed_hausdorff(path_2.clone(), path_1.clone(), workers).0;
             assert_ne!(actual_forward, actual_reverse);
@@ -473,7 +469,7 @@ mod scipy_tests {
         let expected_forward = 1.000681524361451;
         let path_1 = Arc::new(path_1);
         let path_2 = Arc::new(path_2);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual_forward = directed_hausdorff(path_1.clone(), path_2.clone(), workers).0;
             assert_eq!(actual_forward, expected_forward);
         }
@@ -487,7 +483,7 @@ mod scipy_tests {
         let expected_reverse = 2.3000000000000003;
         let path_1 = Arc::new(path_1);
         let path_2 = Arc::new(path_2);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual_reverse = directed_hausdorff(path_2.clone(), path_1.clone(), workers).0;
             assert_eq!(actual_reverse, expected_reverse);
         }
@@ -500,7 +496,7 @@ mod scipy_tests {
         let (path_1, _, _, _) = setup_tests();
         let expected = 0.0;
         let path_1 = Arc::new(path_1);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual = directed_hausdorff(path_1.clone(), path_1.clone(), workers).0;
             assert_eq!(actual, expected);
         }
@@ -514,7 +510,7 @@ mod scipy_tests {
         let path_1 = Arc::new(path_1.slice(s![.., ..2]).to_owned());
         let path_2 = Arc::new(path_2.slice(s![.., ..2]).to_owned());
         let expected = 1.000681524361451;
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual = directed_hausdorff(path_1.clone(), path_2.clone(), workers).0;
             assert_eq!(actual, expected);
         }
@@ -528,7 +524,7 @@ mod scipy_tests {
         let expected = 22.119900542271886;
         let path_1_4d = Arc::new(path_1_4d);
         let path_2_4d = Arc::new(path_2_4d);
-        for workers in 0..4 {
+        for workers in 0..9 {
             let actual = directed_hausdorff(path_2_4d.clone(), path_1_4d.clone(), workers).0;
             assert_eq!(actual, expected);
         }
