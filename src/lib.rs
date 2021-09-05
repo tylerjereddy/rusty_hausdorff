@@ -1,4 +1,6 @@
 use ndarray::Array2;
+use rand::{seq::SliceRandom, SeedableRng};
+use rand_chacha::ChaChaRng;
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::thread;
@@ -85,7 +87,15 @@ fn directed_hausdorff_core(
     let mut i_ret = 0;
     let mut j_ret = 0;
 
-    for i in start_row_index..end_row_index {
+    // algorithm is known to experience more
+    // early breaks if data is not "structured"
+    // so shuffle it as a general rule
+    let seed = [0; 32];
+    let mut rng = ChaChaRng::from_seed(seed);
+    let mut iter_elements: Vec<usize> = (start_row_index..end_row_index).collect();
+    iter_elements.shuffle(&mut rng);
+
+    for i in iter_elements {
         let mut cmin = f64::INFINITY;
         for (j, row_j) in ar2.outer_iter().enumerate() {
             d = 0.0;
