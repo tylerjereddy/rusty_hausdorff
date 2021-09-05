@@ -92,17 +92,20 @@ fn directed_hausdorff_core(
     // so shuffle it as a general rule
     let seed = [0; 32];
     let mut rng = ChaChaRng::from_seed(seed);
+    let mut rng2 = ChaChaRng::from_seed(seed);
     let mut iter_elements: Vec<usize> = (start_row_index..end_row_index).collect();
+    let mut inner_iter_elements: Vec<usize> = (0..ar2.nrows()).collect();
     iter_elements.shuffle(&mut rng);
+    inner_iter_elements.shuffle(&mut rng2);
 
     for i in iter_elements {
         let mut cmin = f64::INFINITY;
-        for (j, row_j) in ar2.outer_iter().enumerate() {
+        for j in &inner_iter_elements {
             d = 0.0;
             for dim in 0..num_dims {
                 // square of distance -- avoid sqrt
                 // until very end for performance
-                d += (ar1[[i, dim]] - row_j[dim]).powi(2);
+                d += (ar1[[i, dim]] - ar2[[*j, dim]]).powi(2);
             }
             if d < cmax {
                 break;
@@ -110,7 +113,7 @@ fn directed_hausdorff_core(
             if d < cmin {
                 cmin = d;
                 i_store = i;
-                j_store = j;
+                j_store = *j;
             }
         }
         if cmin >= cmax && d >= cmax {
