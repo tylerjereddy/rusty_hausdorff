@@ -10,9 +10,6 @@ pub fn directed_hausdorff(
     ar2: Arc<Array2<f64>>,
     workers: usize,
 ) -> (f64, usize, usize) {
-    // TODO: decide if we're going to use random
-    // shuffling in the Rust version to match
-    // the SciPy implementation?
     let chunk_size;
     let mut start;
     let mut stop;
