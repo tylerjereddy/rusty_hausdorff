@@ -10,33 +10,25 @@ pub fn directed_hausdorff(
     ar2: Arc<Array2<f64>>,
     workers: usize,
 ) -> (f64, usize, usize) {
-    let chunk_size;
-    let mut start;
-    let mut stop;
-
     if workers <= 1 {
         // single thread/serial approach
         directed_hausdorff_core(&ar1, &ar2, 0, ar1.nrows())
     } else {
+        let chunk_size;
+        let mut start;
+        let mut stop;
         if ar1.nrows() % workers == 0 {
             chunk_size = ar1.nrows() / workers;
         } else {
-            // TODO: parallel workflow handled
-            // for more complex scenarios AND
-            // based on whether ar1 has more rows
-            // than ar2 (otherwise, may want to work
-            // on chunks of ar2 instead)
-
-            if workers >= ar1.nrows() {
+            chunk_size = match workers >= ar1.nrows() {
                 // if there are equivalent or more workers than rows
                 // give each worker a row until you run
                 // out of rows
-                chunk_size = 1;
-            } else {
+                true => 1,
                 // NOTE: there is probably a more efficient
                 // way to distribute work in this case
-                chunk_size = (ar1.nrows() as f64 / workers as f64).ceil() as usize;
-            }
+                false => (ar1.nrows() as f64 / workers as f64).ceil() as usize,
+            };
         }
         let rx = {
             let (tx, rx) = mpsc::channel();
