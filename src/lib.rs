@@ -15,8 +15,6 @@ pub fn directed_hausdorff(
         directed_hausdorff_core(&ar1, &ar2, 0, ar1.nrows())
     } else {
         let chunk_size;
-        let mut start;
-        let mut stop;
         if ar1.nrows() % workers == 0 {
             chunk_size = ar1.nrows() / workers;
         } else {
@@ -32,8 +30,8 @@ pub fn directed_hausdorff(
         }
         let rx = {
             let (tx, rx) = mpsc::channel();
-            start = 0;
-            stop = chunk_size;
+            let mut start = 0;
+            let mut stop = chunk_size;
             for _ in 0..workers {
                 let sub_tx = tx.clone();
                 let arr1 = ar1.clone();
