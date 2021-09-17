@@ -11,6 +11,22 @@ use std::thread;
 /// arrays to simplify the initial design around providing
 /// convenient parallel performance. The number of threads
 /// may be specified with the `workers` argument.
+///
+/// # Examples
+///
+/// ```
+/// // The directed Hausdorff distance between identical
+/// // arrays should be 0
+/// # use rusty_hausdorff::*;
+/// # use std::sync::Arc;
+/// # use ndarray::prelude::*;
+/// let a1 = arr2(&[[1., 2., 3.], [4., 5., 6.]]);
+/// let a2 = arr2(&[[1., 2., 3.], [4., 5., 6.]]);
+/// // we will ignore the indices in the result tuple for now
+/// let dist = directed_hausdorff(Arc::new(a1), Arc::new(a2), 1).0;
+/// assert_eq!(dist, 0.0);
+/// ```
+
 pub fn directed_hausdorff(
     ar1: Arc<Array2<f64>>,
     ar2: Arc<Array2<f64>>,
