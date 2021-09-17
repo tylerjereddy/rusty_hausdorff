@@ -5,6 +5,12 @@ use std::sync::mpsc;
 use std::sync::Arc;
 use std::thread;
 
+/// Calculate the directed Hausdorff distance between two arrays.
+///
+/// The current API accepts only atomically reference counted
+/// arrays to simplify the initial design around providing
+/// convenient parallel performance. The number of threads
+/// may be specified with the `workers` argument.
 pub fn directed_hausdorff(
     ar1: Arc<Array2<f64>>,
     ar2: Arc<Array2<f64>>,
