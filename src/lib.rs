@@ -1,3 +1,11 @@
+//! A parallel implementation of the directed [Hausdorff
+//! distance](https://en.wikipedia.org/wiki/Hausdorff_distance).
+//!
+//! This implementation is particularly effective when the first
+//! of the two arrays of points is quite large, since this allows
+//! the calculation to be effectively distributed over several
+//! threads.
+
 use ndarray::Array2;
 use rand::{seq::SliceRandom, SeedableRng};
 use rand_chacha::ChaChaRng;
