@@ -20,6 +20,17 @@ use std::thread;
 /// convenient parallel performance. The number of threads
 /// may be specified with the `workers` argument.
 ///
+/// The implementation is a parallel intrepretation of the
+/// "early break" algorithm described in the following publication:
+///
+///
+/// A. A. Taha and A. Hanbury, “An efficient algorithm for calculating the exact Hausdorff
+/// distance.” IEEE Transactions On Pattern Analysis And Machine Intelligence, vol. 37 pp. 2153-63,
+/// 2015.
+///
+/// A serial implementation of the algorithm was made available previously
+/// in
+/// [`scipy.spatial.distance.directed_hausdorff`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.directed_hausdorff.html#scipy-spatial-distance-directed-hausdorff).
 /// # Examples
 ///
 /// ```
