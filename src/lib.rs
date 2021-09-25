@@ -45,6 +45,26 @@ use std::thread;
 /// let dist = directed_hausdorff(Arc::new(a1), Arc::new(a2), 1).0;
 /// assert_eq!(dist, 0.0);
 /// ```
+///
+/// ```
+/// // The directed Hausdorff distance is not symmetric,
+/// // but it is common to want to calculate the general
+/// // (symmetric) Hausdorff distance
+/// # use rusty_hausdorff::*;
+/// # use std::sync::Arc;
+/// # use ndarray::prelude::*;
+/// let a1 = Arc::new(arr2(&[[1.0, 0.0], [0.0, 1.0], [-1.0, 0.0], [0.0, -1.0]]));
+/// let a2 = Arc::new(arr2(&[[2.0, 0.0], [0.0, 2.0], [-2.0, 0.0], [0.0, -4.0]]));
+/// // use two threads for each calculation
+/// let dist_1 = directed_hausdorff(a1.clone(), a2.clone(), 2).0;
+/// let dist_2 = directed_hausdorff(a2.clone(), a1.clone(), 2).0;
+/// assert_eq!(dist_1, 2.23606797749979);
+/// assert_eq!(dist_2, 3.0);
+/// // the general Hausdorff distance is the max of the two
+/// let general_dist = dist_1.max(dist_2);
+/// assert_eq!(general_dist, 3.0);
+/// ```
+///
 
 pub fn directed_hausdorff(
     ar1: Arc<Array2<f64>>,
