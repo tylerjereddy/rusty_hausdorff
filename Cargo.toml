@@ -1,6 +1,6 @@
 [package]
 name = "rusty_hausdorff"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Tyler Reddy <tyler.je.reddy@gmail.com>"]
 edition = "2018"
 description = "A parallel implementation of the directed Hausdorff distance."
