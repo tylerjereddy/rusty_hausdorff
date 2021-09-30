@@ -6,6 +6,7 @@ edition = "2018"
 description = "A parallel implementation of the directed Hausdorff distance."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tylerjereddy/rusty_hausdorff"
+categories = ["science", "mathematics", "algorithms"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
