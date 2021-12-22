@@ -164,6 +164,13 @@ fn directed_hausdorff_core(
                 j_store = *j;
             }
         }
+        // Note: The reference paper by A. A. Taha and A. Hanbury has this line
+        // (Algorithm 2, line 16) as:
+        //
+        // if cmin > cmax:
+        //
+        // That logic is incorrect, as cmin could still be np.inf if breaking early.
+        // The logic here accounts for that case.
         if cmin >= cmax && d >= cmax {
             cmax = cmin;
             i_ret = i_store;
